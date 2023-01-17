@@ -13,21 +13,25 @@ device_file = device_folder + '/w1_slave'
 
 dispositivos = [
     {
+        'id':'tem1',
         'nome':'sensor_temperatura',
         'porta_fisica':None,
         'estado':0
     },
     {
+        'id':'lum1',
         'nome':'sensor_luminosidade',
         'porta_fisica':29,
         'estado':0
     },
     {
+        'id':'led1',
         'nome':'led_vermelho',
         'porta_fisica':16,
         'estado':0
     },
     {
+        'id':'led2',
         'nome':'led_verde',
         'porta_fisica':18,
         'estado':0
@@ -80,18 +84,13 @@ def read_light_sensor (pin_to_circuit):
 def consume_led_command():
     consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
     consumer.subscribe(topics=('ledcommand'))
-    ledpin = 0
     for msg in consumer:
         print ('Led command received: ', msg.value)
         print ('Led to blink: ', msg.key)
         if msg.key == b'red':
-            led = next(disp for disp in dispositivos 
-                    if disp['nome'] == 'led_vermelho' 
-                    and disp['porta_fisica'] == 16)
+            led = next(disp for disp in dispositivos if disp['id'] == 'led1')
         else:
-            led = next(disp for disp in dispositivos 
-                    if disp['nome'] == 'led_verde' 
-                    and disp['porta_fisica'] == 18)
+            led = next(disp for disp in dispositivos if disp['id'] == 'led2')
         if msg.value == b'1':
             print ('Turning led on')
             GPIO.output(led['porta_fisica'],GPIO.HIGH)
@@ -110,12 +109,12 @@ while True:
     print('Temperature: ', temp_c, temp_f)
     if (math.fabs(temp_c - dispositivos[0]['estado']) >= 0.1):
         dispositivos[0]['estado'] = temp_c
-        producer.send('temperature', str(temp_c).encode())
+        producer.send('temperature', str(dispositivos[0]).encode())
 
     # Read and report light lelve to the cloud-based service
     light_level = read_light_sensor(dispositivos[1]['porta_fisica'])
     print('Light level: ', light_level)
     if (light_level != dispositivos[1]['estado']):
         dispositivos[1]['estado'] = light_level
-        producer.send('lightlevel', str(light_level).encode())
+        producer.send('lightlevel', str(dispositivos[1]).encode())
     time.sleep(1)
