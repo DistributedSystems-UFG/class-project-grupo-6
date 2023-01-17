@@ -11,20 +11,36 @@ base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
 device_file = device_folder + '/w1_slave'
 
-red_led_pin = 16
-green_led_pin = 18
-light_sensor_pin = 29
-
+dispositivos = [
+    {
+        'nome':'sensor_temperatura',
+        'porta_fisica':None,
+        'estado':0
+    },
+    {
+        'nome':'sensor_luminosidade',
+        'porta_fisica':29,
+        'estado':0
+    },
+    {
+        'nome':'led_vermelho',
+        'porta_fisica':16,
+        'estado':0
+    },
+    {
+        'nome':'led_verde',
+        'porta_fisica':18,
+        'estado':0
+    }
+]
 
 # Initialize GPIO for the LEDs
 GPIO.setwarnings(False) # Ignore warning for now
 GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
-GPIO.setup(red_led_pin, GPIO.OUT, initial=GPIO.LOW) # Set pin 16 to be an output pin and set initial value to low (off)
-GPIO.setup(green_led_pin, GPIO.OUT, initial=GPIO.LOW) # Idem for pin 18
+GPIO.setup(dispositivos[2]['porta_fisica'], GPIO.OUT, initial=GPIO.LOW) # Set pin 16 to be an output pin and set initial value to low (off)
+GPIO.setup(dispositivos[3]['porta_fisica'], GPIO.OUT, initial=GPIO.LOW) # Idem for pin 18
 
 producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
-last_reported_temp = 0
-last_reported_light_level = 0
 
 def read_temp_raw():
     f = open(device_file, 'r')
@@ -69,15 +85,21 @@ def consume_led_command():
         print ('Led command received: ', msg.value)
         print ('Led to blink: ', msg.key)
         if msg.key == b'red':
-            ledpin = red_led_pin
+            led = next(disp for disp in dispositivos 
+                    if disp['nome'] == 'led_vermelho' 
+                    and disp['porta_fisica'] == 16)
         else:
-            ledpin = green_led_pin
+            led = next(disp for disp in dispositivos 
+                    if disp['nome'] == 'led_verde' 
+                    and disp['porta_fisica'] == 18)
         if msg.value == b'1':
             print ('Turning led on')
-            GPIO.output(ledpin,GPIO.HIGH)
+            GPIO.output(led['porta_fisica'],GPIO.HIGH)
+            led['estado'] = 1
         else:
             print ('Turning led off')
-            GPIO.output(ledpin,GPIO.LOW)
+            GPIO.output(led['porta_fisica'],GPIO.LOW)
+            led['estado'] = 0
 
 trd =threading.Thread(target=consume_led_command)
 trd.start()
@@ -86,14 +108,14 @@ while True:
     # Read and report temperature to the cloud-based service
     (temp_c, temp_f) = read_temp()
     print('Temperature: ', temp_c, temp_f)
-    if (math.fabs(temp_c - last_reported_temp) >= 0.1):
-        last_reported_temp = temp_c
+    if (math.fabs(temp_c - dispositivos[0]['estado']) >= 0.1):
+        dispositivos[0]['estado'] = temp_c
         producer.send('temperature', str(temp_c).encode())
 
     # Read and report light lelve to the cloud-based service
-    light_level = read_light_sensor(light_sensor_pin)
+    light_level = read_light_sensor(dispositivos[1]['porta_fisica'])
     print('Light level: ', light_level)
-    if (light_level != last_reported_light_level):
-        last_reported_light_level = light_level
+    if (light_level != dispositivos[1]['estado']):
+        dispositivos[1]['estado'] = light_level
         producer.send('lightlevel', str(light_level).encode())
     time.sleep(1)
