@@ -81,35 +81,28 @@ def consume_light_level():
         #print ('Received Light Level: ', msg.value.decode())
         #sensor['estado'] = msg.value.decode()
 
-def produce_led_command(state, ledname):
+def produce_led_command(state, ledId):
     producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
-    producer.send('ledcommand', key=ledname.encode(), value=str(state).encode())
+    producer.send('ledcommand', key=ledId.encode(), value=str(state).encode())
     return state
         
 class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
 
     def SayTemperature(self, request, context):
-        sensor = next(disp for disp in dispositivos if disp['id'] == 'tem1')
+        sensor = next(disp for disp in dispositivos if disp['id'] == request.sensorId)
         return iot_service_pb2.TemperatureReply(temperature=sensor['estado'])
     
     def BlinkLed(self, request, context):
         print ("Blink led ", request.ledname)
         print ("...with state ", request.state)
-        produce_led_command(request.state, request.ledname)
+        produce_led_command(request.state, request.ledId)
         # Update led state of twin
-        if request.name == 'red':
-            led = next(disp for disp in dispositivos if disp['id'] == 'led1')
-        else:
-            led = next(disp for disp in dispositivos  if disp['id'] == 'led2')
+        led = next(disp for disp in dispositivos if disp['id'] == request.ledId)
         led['estado'] = request.state
-        dat = {
-            'red':dispositivos[2]['estado'],
-            'green':dispositivos[3]['estado']
-        }
-        return iot_service_pb2.LedReply(ledstate=dat)
+        return iot_service_pb2.LedReply(ledstate=led['estado'])
 
     def SayLightLevel(self, request, context):
-        sensor = next(disp for disp in dispositivos if disp['id'] == 'lum1')
+        sensor = next(disp for disp in dispositivos if disp['id'] == request.sensorId)
         return iot_service_pb2.LightLevelReply(lightLevel=sensor['estado'])
 
     def Login(self, request, context):
