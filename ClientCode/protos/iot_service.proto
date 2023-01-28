@@ -17,11 +17,13 @@ service IoTService {
 
   // Responds with the current reading of a given light sensor
   rpc SayLightLevel (LightLevelRequest) returns (LightLevelReply) {}
+
+  rpc Login(LoginRequest) returns (LoginReply) {}
 }
 
 // The request message containing the user's name.
 message TemperatureRequest {
-  string sensorName = 1;
+  string sensorId = 1;
 }
 
 // The response message containing the greetings
@@ -31,17 +33,26 @@ message TemperatureReply {
 
 message LedRequest {
   uint32 state = 1;
-  string ledname =2;
+  string ledId = 2;
 }
 
 message LedReply {
-  map<string, uint32> ledstate = 1;
+  uint32 ledstate = 1;
 }
 
 message LightLevelRequest {
-  string sensorName = 1;
+  string sensorId = 1;
 }
 
 message LightLevelReply {
   string lightLevel = 1;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginReply {
+  string reply = 1;
 }
