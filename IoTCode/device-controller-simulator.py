@@ -1,6 +1,7 @@
 import time
 from kafka import KafkaProducer, KafkaConsumer
 import math
+import json
 import threading
 from random import uniform
 from random import randint
@@ -33,7 +34,8 @@ dispositivos = [
     }
 ]
 
-producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
+producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
+    value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
 def read_temp():
     temp = str(round(uniform(24, 25), 1))
@@ -49,15 +51,10 @@ def consume_led_command():
     consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
     consumer.subscribe(topics=('ledcommand'))
     for msg in consumer:
-        led = next(disp for disp in dispositivos if disp['id'] == msg.key)
-        print ('Led command received: ', msg.value)
+        led = next(disp for disp in dispositivos if disp['id'] == msg['id'])
+        print ('Led command received: ', msg['estado'])
         print ('Led to blink: ', led['nome'])
-        if msg.value == b'1':
-            print ('Turning' + led['nome'] + 'on')
-            led['estado'] = 1
-        else:
-            print ('Turning' + led['nome'] + 'off')
-            led['estado'] = 0
+        led['estado'] = msg['estado']
 
 trd =threading.Thread(target=consume_led_command)
 trd.start()
@@ -68,12 +65,12 @@ while True:
     print('Temperature: ', temp_c, temp_f)
     if (math.fabs(temp_c - dispositivos[0]['estado']) >= 0.1):
         dispositivos[0]['estado'] = temp_c
-        producer.send('temperature', str(dispositivos[0]).encode())
+        producer.send('temperature', dispositivos[0])
 
     # Read and report light lelve to the cloud-based service
     light_level = read_light_sensor()
     print('Light level: ', light_level)
     if (light_level != dispositivos[1]['estado']):
         dispositivos[1]['estado'] = light_level
-        producer.send('lightlevel', str(dispositivos[1]).encode())
+        producer.send('lightlevel', dispositivos[1])
     time.sleep(1)

@@ -4,7 +4,7 @@ import threading
 
 from concurrent import futures
 import logging
-
+import json
 import grpc
 import iot_service_pb2
 import iot_service_pb2_grpc
@@ -64,7 +64,8 @@ users = [
 # Kafka consumer to run on a separate thread
 def consume_temperature():
     sensor = next(disp for disp in dispositivos if disp['id'] == 'tem1')
-    consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
+    consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
+        value_serializer=lambda v: json.dumps(v).encode('utf-8'))
     consumer.subscribe(topics=('temperature'))
     for msg in consumer:
         print(msg)
@@ -74,17 +75,18 @@ def consume_temperature():
 # Kafka consumer to run on a separate thread
 def consume_light_level():
     sensor = next(disp for disp in dispositivos if disp['id'] == 'lum1')
-    consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
+    consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
+        value_serializer=lambda v: json.dumps(v).encode('utf-8'))
     consumer.subscribe(topics=('lightlevel'))
     for msg in consumer:
         print(msg)
         #print ('Received Light Level: ', msg.value.decode())
         #sensor['estado'] = msg.value.decode()
 
-def produce_led_command(state, ledId):
-    producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
-    producer.send('ledcommand', key=ledId.encode(), value=str(state).encode())
-    return state
+def produce_led_command(led):
+    producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
+        value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    producer.send('ledcommand', led)
         
 class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
 
@@ -95,10 +97,10 @@ class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
     def BlinkLed(self, request, context):
         print ("Blink led ", request.ledname)
         print ("...with state ", request.state)
-        produce_led_command(request.state, request.ledId)
         # Update led state of twin
         led = next(disp for disp in dispositivos if disp['id'] == request.ledId)
         led['estado'] = request.state
+        produce_led_command(led)
         return iot_service_pb2.LedReply(ledstate=led['estado'])
 
     def SayLightLevel(self, request, context):
@@ -132,7 +134,7 @@ if __name__ == '__main__':
     trd2.start()
 
     # Initialize the state of the leds on the actual device
-    led_state = {'red':dispositivos[2]['estado'], 'green':dispositivos[3]['estado']}
-    for color in led_state.keys():
-        produce_led_command (led_state[color], color)
+    for dispositivo in dispositivos:
+        if dispositivo['id'].startswith('led'):
+            produce_led_command(dispositivo)
     serve()
