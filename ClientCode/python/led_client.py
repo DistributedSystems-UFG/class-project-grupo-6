@@ -14,7 +14,7 @@ def run():
         username = input('User: ')
         password = input('Password: ')
         response = stub.Login(iot_service_pb2.LoginRequest(username=username, password=password))
-        if response == 'OK':
+        if response != None:
             ledcolor = input('Enter the color: ')
             state = input('Enter the state: ')
             if ledcolor == 'Red' or ledcolor == 'red':

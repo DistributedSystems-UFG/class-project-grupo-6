@@ -40,21 +40,25 @@ dispositivos = [
 # Users
 users = [
     {
+        'id': 'usr1',
         'username':'usuario1',
         'password':'senha1',
         'dispositivos': ['temp1']
     },
     {
+        'id': 'usr2',
         'username':'usuario2',
         'password':'senha2',
         'dispositivos': ['lum1']
     },
     {
+        'id': 'usr3',
         'username':'usuario3',
         'password':'senha3',
         'dispositivos': ['led1']
     },
     {
+        'id': 'usr4',
         'username':'usuario4',
         'password':'senha4',
         'dispositivos': ['lum1','led2']
@@ -80,6 +84,7 @@ def consume_light_level():
     consumer.subscribe(topics=('lightlevel'))
     for msg in consumer:
         print(msg)
+        print(msg['estado'])
         #print ('Received Light Level: ', msg.value.decode())
         #sensor['estado'] = msg.value.decode()
 
@@ -111,9 +116,9 @@ class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
         for user in users:
             if user['username'] == request.username and \
                 user['password'] == request.password:
-                return iot_service_pb2.StatusReply(status='OK')
+                return iot_service_pb2.LoginReply(userId=user['id'])
             else:
-                return iot_service_pb2.StatusReply(status='NOT OK')
+                return iot_service_pb2.LoginReply(userId=None)
         
 
 def serve():

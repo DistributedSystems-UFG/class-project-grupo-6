@@ -54,5 +54,5 @@ message LoginRequest {
 }
 
 message LoginReply {
-  string reply = 1;
+  string userId = 1;
 }

@@ -13,7 +13,7 @@ def run():
         username = input('User: ')
         password = input('Password: ')
         response = stub.Login(iot_service_pb2.LoginRequest(username=username, password=password))
-        if response == 'OK':
+        if response != None:
             response = stub.SayTemperature(iot_service_pb2.TemperatureRequest(sensorId='tem1'))
             print("Temperature received: " + response.temperature)
         else:
