@@ -67,25 +67,40 @@ users = [
 
 # Kafka consumer to run on a separate thread
 def consume_temperature():
-    sensor = next(disp for disp in dispositivos if disp['id'] == 'tem1')
     consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
         value_deserializer=lambda m: json.loads(m.decode('utf-8')))
     consumer.subscribe(topics=('temperature'))
     for msg in consumer:
         valor = msg.value
-        print ('Received Temperature: ', valor['estado'])
-        sensor['estado'] = valor['estado']
+        try:
+            sensor = next(disp for disp in dispositivos if disp['id'] == valor['id'])
+        except StopIteration:
+            sensor = None
+        if sensor == None:
+            dispositivos.append(valor)
+            print('Device ' + valor['id'] + ' added')
+        else:
+            sensor['estado'] = valor['estado']
+            print ('Received Temperature: ', sensor['estado'])
+        
 
 # Kafka consumer to run on a separate thread
 def consume_light_level():
-    sensor = next(disp for disp in dispositivos if disp['id'] == 'lum1')
     consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
         value_deserializer=lambda m: json.loads(m.decode('utf-8')))
     consumer.subscribe(topics=('lightlevel'))
     for msg in consumer:
         valor = msg.value
-        print ('Received Light Level: ', valor['estado'])
-        sensor['estado'] = valor['estado']
+        try:
+            sensor = next(disp for disp in dispositivos if disp['id'] == valor['id'])
+        except StopIteration:
+            sensor = None
+        if sensor == None:
+            dispositivos.append(valor)
+            print('Device ' + valor['id'] + ' added')
+        else:
+            sensor['estado'] = valor['estado']
+            print ('Received Light Level: ', sensor['estado'])
 
 def produce_led_command(led):
     producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
