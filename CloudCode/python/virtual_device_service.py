@@ -69,24 +69,23 @@ users = [
 def consume_temperature():
     sensor = next(disp for disp in dispositivos if disp['id'] == 'tem1')
     consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
-        value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+        value_deserializer=lambda m: json.loads(m.decode('utf-8')))
     consumer.subscribe(topics=('temperature'))
     for msg in consumer:
-        print(msg)
-        #print ('Received Temperature: ', msg.value.decode())
-        #sensor['estado'] = msg.value.decode()
+        valor = msg.value
+        print ('Received Temperature: ', valor['estado'])
+        sensor['estado'] = valor['estado']
 
 # Kafka consumer to run on a separate thread
 def consume_light_level():
     sensor = next(disp for disp in dispositivos if disp['id'] == 'lum1')
     consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
-        value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+        value_deserializer=lambda m: json.loads(m.decode('utf-8')))
     consumer.subscribe(topics=('lightlevel'))
     for msg in consumer:
-        print(msg)
-        print(msg['estado'])
-        #print ('Received Light Level: ', msg.value.decode())
-        #sensor['estado'] = msg.value.decode()
+        valor = msg.value
+        print ('Received Light Level: ', valor['estado'])
+        sensor['estado'] = valor['estado']
 
 def produce_led_command(led):
     producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,

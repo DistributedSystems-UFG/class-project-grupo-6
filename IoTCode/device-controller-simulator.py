@@ -48,13 +48,15 @@ def read_light_sensor ():
     return count
 
 def consume_led_command():
-    consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
+    consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
+        value_deserializer=lambda m: json.loads(m.decode('utf-8')))
     consumer.subscribe(topics=('ledcommand'))
     for msg in consumer:
-        led = next(disp for disp in dispositivos if disp['id'] == msg['id'])
-        print ('Led command received: ', msg['estado'])
-        print ('Led to blink: ', led['nome'])
-        led['estado'] = msg['estado']
+        valor = msg.value
+        led = next(disp for disp in dispositivos if disp['id'] == valor['id'])
+        print ('Led command received: ', valor['estado'])
+        print ('Led to blink: ', valor['nome'])
+        led['estado'] = valor['estado']
 
 trd =threading.Thread(target=consume_led_command)
 trd.start()
