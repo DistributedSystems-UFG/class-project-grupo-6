@@ -110,29 +110,40 @@ def produce_led_command(led):
 class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
 
     def SayTemperature(self, request, context):
-        sensor = next(disp for disp in dispositivos if disp['id'] == request.sensorId)
-        return iot_service_pb2.TemperatureReply(temperature=sensor['estado'])
+        user = next(usr for usr in users if usr['id'] == request.userId)
+        if (request.sensorId in user['dispositivos']):
+            sensor = next(disp for disp in dispositivos if disp['id'] == request.sensorId)
+            return iot_service_pb2.TemperatureReply(temperature=str(sensor['estado']))
+        else:
+            return iot_service_pb2.TemperatureReply(temperature='ACCESS DENIED')
     
     def BlinkLed(self, request, context):
-        print ("Blink led ", request.ledname)
-        print ("...with state ", request.state)
-        # Update led state of twin
-        led = next(disp for disp in dispositivos if disp['id'] == request.ledId)
-        led['estado'] = request.state
-        produce_led_command(led)
-        return iot_service_pb2.LedReply(ledstate=led['estado'])
+        user = next(usr for usr in users if usr['id'] == request.userId)
+        if (request.sensorId in user['dispositivos']):
+            print ("Blink led ", request.ledname)
+            print ("...with state ", request.state)
+            # Update led state of twin
+            led = next(disp for disp in dispositivos if disp['id'] == request.ledId)
+            led['estado'] = request.state
+            produce_led_command(led)
+            return iot_service_pb2.LedReply(ledstate=str(led['estado']))
+        else:
+            return iot_service_pb2.LedReply(ledstate='ACCESS DENIED')
 
     def SayLightLevel(self, request, context):
-        sensor = next(disp for disp in dispositivos if disp['id'] == request.sensorId)
-        return iot_service_pb2.LightLevelReply(lightLevel=sensor['estado'])
+        user = next(usr for usr in users if usr['id'] == request.userId)
+        if (request.sensorId in user['dispositivos']):
+            sensor = next(disp for disp in dispositivos if disp['id'] == request.sensorId)
+            return iot_service_pb2.LightLevelReply(lightLevel=str(sensor['estado']))
+        else:
+            return iot_service_pb2.LightLevelReply(lightLevel='ACCESS DENIED')
 
     def Login(self, request, context):
         for user in users:
             if user['username'] == request.username and \
                 user['password'] == request.password:
                 return iot_service_pb2.LoginReply(userId=user['id'])
-            else:
-                return iot_service_pb2.LoginReply(userId=None)
+        return iot_service_pb2.LoginReply(userId=None)     
         
 
 def serve():
