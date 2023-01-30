@@ -126,9 +126,9 @@ class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
             led = next(disp for disp in dispositivos if disp['id'] == request.ledId)
             led['estado'] = request.state
             produce_led_command(led)
-            return iot_service_pb2.LedReply(ledstate=str(led['estado']))
+            return iot_service_pb2.LedReply(ledstate=led['estado'])
         else:
-            return iot_service_pb2.LedReply(ledstate='ACCESS DENIED')
+            return iot_service_pb2.LedReply(ledstate=-1)
 
     def SayLightLevel(self, request, context):
         user = next(usr for usr in users if usr['id'] == request.userId)
