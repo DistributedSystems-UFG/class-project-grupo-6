@@ -1,5 +1,6 @@
 import glob
 import time
+import json
 from kafka import KafkaProducer, KafkaConsumer
 import math
 import threading
@@ -44,7 +45,8 @@ GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
 GPIO.setup(dispositivos[2]['porta_fisica'], GPIO.OUT, initial=GPIO.LOW) # Set pin 16 to be an output pin and set initial value to low (off)
 GPIO.setup(dispositivos[3]['porta_fisica'], GPIO.OUT, initial=GPIO.LOW) # Idem for pin 18
 
-producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
+producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
+    value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
 def read_temp_raw():
     f = open(device_file, 'r')
@@ -82,23 +84,21 @@ def read_light_sensor (pin_to_circuit):
     return count
 
 def consume_led_command():
-    consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT)
+    consumer = KafkaConsumer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
+        value_deserializer=lambda m: json.loads(m.decode('utf-8')))
     consumer.subscribe(topics=('ledcommand'))
     for msg in consumer:
-        print ('Led command received: ', msg.value)
-        print ('Led to blink: ', msg.key)
-        if msg.key == b'red':
-            led = next(disp for disp in dispositivos if disp['id'] == 'led1')
-        else:
-            led = next(disp for disp in dispositivos if disp['id'] == 'led2')
-        if msg.value == b'1':
+        valor = msg.value
+        led = next(disp for disp in dispositivos if disp['id'] == valor['id'])
+        print ('Led command received: ', valor['estado'])
+        print ('Led to blink: ', valor['nome'])
+        led['estado'] = valor['estado']
+        if led['estado'] == 1:
             print ('Turning led on')
             GPIO.output(led['porta_fisica'],GPIO.HIGH)
-            led['estado'] = 1
         else:
             print ('Turning led off')
             GPIO.output(led['porta_fisica'],GPIO.LOW)
-            led['estado'] = 0
 
 trd =threading.Thread(target=consume_led_command)
 trd.start()
@@ -109,12 +109,12 @@ while True:
     print('Temperature: ', temp_c, temp_f)
     if (math.fabs(temp_c - dispositivos[0]['estado']) >= 0.1):
         dispositivos[0]['estado'] = temp_c
-        producer.send('temperature', str(dispositivos[0]).encode())
+        producer.send('temperature', dispositivos[0])
 
     # Read and report light lelve to the cloud-based service
     light_level = read_light_sensor(dispositivos[1]['porta_fisica'])
     print('Light level: ', light_level)
     if (light_level != dispositivos[1]['estado']):
         dispositivos[1]['estado'] = light_level
-        producer.send('lightlevel', str(dispositivos[1]).encode())
+        producer.send('lightlevel', dispositivos[1])
     time.sleep(1)
