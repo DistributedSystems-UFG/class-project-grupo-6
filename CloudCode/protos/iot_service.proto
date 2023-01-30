@@ -24,6 +24,7 @@ service IoTService {
 // The request message containing the user's name.
 message TemperatureRequest {
   string sensorId = 1;
+  string userId = 2;
 }
 
 // The response message containing the greetings
@@ -34,6 +35,7 @@ message TemperatureReply {
 message LedRequest {
   uint32 state = 1;
   string ledId = 2;
+  string userId = 3;
 }
 
 message LedReply {
@@ -42,6 +44,7 @@ message LedReply {
 
 message LightLevelRequest {
   string sensorId = 1;
+  string userId = 2;
 }
 
 message LightLevelReply {
