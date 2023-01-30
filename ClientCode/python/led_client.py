@@ -14,7 +14,8 @@ def run():
         username = input('User: ')
         password = input('Password: ')
         response = stub.Login(iot_service_pb2.LoginRequest(username=username, password=password))
-        if response != None:
+        userId = response.userId
+        if userId != None:
             ledcolor = input('Enter the color: ')
             state = input('Enter the state: ')
             if ledcolor == 'Red' or ledcolor == 'red':
@@ -22,10 +23,13 @@ def run():
             elif ledcolor == 'Green' or ledcolor == 'green':
                 ledId = 'led2'
             response = stub.BlinkLed(iot_service_pb2.LedRequest(state=int(state),ledId=ledId))
-            if response.ledstate == 1:
+            state = response.ledstate
+            if state == 1:
                 print("Led state is on")
-            else:
+            elif state == 0:
                 print("Led state is off")
+            else:
+                print("You don't have access to this dispositive")
         else:
             print('Incorrect username or password')
 

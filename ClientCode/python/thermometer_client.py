@@ -13,9 +13,14 @@ def run():
         username = input('User: ')
         password = input('Password: ')
         response = stub.Login(iot_service_pb2.LoginRequest(username=username, password=password))
-        if response != None:
-            response = stub.SayTemperature(iot_service_pb2.TemperatureRequest(sensorId='tem1'))
-            print("Temperature received: " + response.temperature)
+        userId = response.userId
+        if userId != None:
+            response = stub.SayTemperature(iot_service_pb2.TemperatureRequest(sensorId='tem1', userId=userId))
+            temperature = response.temperature
+            if temperature != 'ACCESS DENIED':
+                print("Temperature received: " + temperature)
+            else:
+                print("You don't have access to this dispositive")
         else:
             print('Incorrect username or password')
 

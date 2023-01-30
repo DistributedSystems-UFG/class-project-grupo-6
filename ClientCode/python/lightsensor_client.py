@@ -13,9 +13,14 @@ def run():
         username = input('User: ')
         password = input('Password: ')
         response = stub.Login(iot_service_pb2.LoginRequest(username=username, password=password))
-        if response != None:
-            response = stub.SayLightLevel(iot_service_pb2.LightLevelRequest(sensorId='lum1'))
-            print("Light level received: " + response.lightLevel)
+        userId = response.userId
+        if userId != None:
+            response = stub.SayLightLevel(iot_service_pb2.LightLevelRequest(sensorId='lum1', userId=userId))
+            lightLevel = response.lightLevel
+            if lightLevel != 'ACCESS DENIED':
+                print("Light level received: " + lightLevel)
+            else:
+                print("You don't have access to this dispositive")
         else:
             print('Incorrect username or password')
 
