@@ -6,13 +6,14 @@ import threading
 from random import uniform
 from random import randint
 from const import *
+from datetime import datetime
 
 dispositivos = [
     {
         'id':'tem1',
         'nome':'sensor_temperatura',
         'porta_fisica':None,
-        'estado':0
+        'estado': []
     },
     {
         'id':'lum1',
@@ -37,9 +38,13 @@ dispositivos = [
 producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
     value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
+def get_datetime():
+    now = datetime.now()
+    iso_date = now.isoformat()
+    return iso_date
+
 def read_temp():
-    temp = str(round(uniform(24, 25), 1))
-    temp_c = float(temp) / 1000.0
+    temp_c = round(uniform(24, 25), 1)
     temp_f = temp_c * 9.0 / 5.0 + 32.0
     return temp_c, temp_f
 
@@ -65,8 +70,15 @@ while True:
     # Read and report temperature to the cloud-based service
     (temp_c, temp_f) = read_temp()
     print('Temperature: ', temp_c, temp_f)
-    if (math.fabs(temp_c - dispositivos[0]['estado']) >= 0.1):
-        dispositivos[0]['estado'] = temp_c
+    if (len(dispositivos[0]['estado']) == 0 or 
+        math.fabs(temp_c - dispositivos[0]['estado'][0]['temperatura']) >= 0.1):
+        dat = {
+            'temperatura':temp_c,
+            'data':get_datetime()
+        }
+        if len(dispositivos[0]['estado']) == 10:
+            dispositivos[0]['estado'].pop(0)
+        dispositivos[0]['estado'].append(dat)
         producer.send('temperature', dispositivos[0])
 
     # Read and report light lelve to the cloud-based service
