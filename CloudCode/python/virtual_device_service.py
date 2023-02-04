@@ -12,18 +12,6 @@ import iot_service_pb2_grpc
 # Twin state
 dispositivos = [
     {
-        'id':'tem1',
-        'nome':'sensor_temperatura',
-        'porta_fisica':None,
-        'estado':0
-    },
-    {
-        'id':'lum1',
-        'nome':'sensor_luminosidade',
-        'porta_fisica':29,
-        'estado':0
-    },
-    {
         'id':'led1',
         'nome':'led_vermelho',
         'porta_fisica':16,
@@ -81,7 +69,7 @@ def consume_temperature():
             print('Device ' + valor['id'] + ' added')
         else:
             sensor['estado'] = valor['estado']
-            print ('Received Temperature: ', sensor['estado'])
+            print ('Received Temperature: ', sensor['estado'][-1])
         
 
 # Kafka consumer to run on a separate thread
