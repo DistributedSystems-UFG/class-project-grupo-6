@@ -52,7 +52,7 @@ producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
 def get_datetime():
     now = datetime.now()
     iso_date = now.isoformat()
-    return iso_date
+    return str(iso_date)
 
 def read_temp_raw():
     f = open(device_file, 'r')
