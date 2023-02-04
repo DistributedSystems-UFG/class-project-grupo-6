@@ -1,5 +1,4 @@
 import logging
-
 import grpc
 import iot_service_pb2
 import iot_service_pb2_grpc
@@ -16,9 +15,10 @@ def run():
         userId = response.userId
         if userId != None:
             response = stub.SayTemperature(iot_service_pb2.TemperatureRequest(sensorId='tem1', userId=userId))
-            temperature = response.temperature
-            if temperature != 'ACCESS DENIED':
-                print("Temperature received: " + temperature)
+            temperatures = response.temperatureJSON
+            if temperatures[0].date != 'NA':
+                for item in temperatures:
+                    print("Temperature received: ", item.temperature, " ", item.date)
             else:
                 print("You don't have access to this dispositive")
         else:

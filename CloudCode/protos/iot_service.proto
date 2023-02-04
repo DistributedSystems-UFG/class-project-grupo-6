@@ -27,9 +27,14 @@ message TemperatureRequest {
   string userId = 2;
 }
 
+message TemperatureJSON {
+  float temperature = 1;
+  string date = 2;
+}
+
 // The response message containing the greetings
 message TemperatureReply {
-  string temperature = 1;
+  repeated TemperatureJSON temperatureJSON = 1;
 }
 
 message LedRequest {

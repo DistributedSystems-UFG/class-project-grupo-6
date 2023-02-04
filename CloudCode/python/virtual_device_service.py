@@ -31,7 +31,7 @@ users = [
         'id': 'usr1',
         'username':'usuario1',
         'password':'senha1',
-        'dispositivos': ['temp1']
+        'dispositivos': ['tem1']
     },
     {
         'id': 'usr2',
@@ -99,11 +99,18 @@ class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
 
     def SayTemperature(self, request, context):
         user = next(usr for usr in users if usr['id'] == request.userId)
+        lista = []
         if (request.sensorId in user['dispositivos']):
             sensor = next(disp for disp in dispositivos if disp['id'] == request.sensorId)
-            return iot_service_pb2.TemperatureReply(temperature=str(sensor['estado']))
+            for dat in sensor['estado']:
+                item = iot_service_pb2.TemperatureJSON(temperature=dat['temperatura'],
+                    date=dat['data'])
+                lista.append(item)
         else:
-            return iot_service_pb2.TemperatureReply(temperature='ACCESS DENIED')
+            item = iot_service_pb2.TemperatureJSON(temperature=0,
+                    date='NA')
+            lista.append(item)
+        return iot_service_pb2.TemperatureReply(temperatureJSON=lista)
     
     def BlinkLed(self, request, context):
         user = next(usr for usr in users if usr['id'] == request.userId)
