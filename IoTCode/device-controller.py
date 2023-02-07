@@ -114,7 +114,7 @@ while True:
     (temp_c, temp_f) = read_temp()
     print('Temperature: ', temp_c, temp_f)
     if (len(dispositivos[0]['estado']) == 0 or
-        math.fabs(temp_c - dispositivos[0]['estado']) >= 0.1):
+        math.fabs(temp_c - dispositivos[0]['estado'][0]['temperatura']) >= 0.1):
         dat = {
             'temperatura':temp_c,
             'data':get_datetime()
