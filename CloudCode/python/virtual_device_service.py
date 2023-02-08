@@ -114,8 +114,8 @@ class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
     
     def BlinkLed(self, request, context):
         user = next(usr for usr in users if usr['id'] == request.userId)
-        if (request.sensorId in user['dispositivos']):
-            print ("Blink led ", request.ledname)
+        if (request.ledId in user['dispositivos']):
+            print ("Blink led ", request.ledId)
             print ("...with state ", request.state)
             # Update led state of twin
             led = next(disp for disp in dispositivos if disp['id'] == request.ledId)
