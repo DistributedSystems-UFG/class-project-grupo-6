@@ -37,7 +37,7 @@ users = [
         'id': 'usr2',
         'username':'usuario2',
         'password':'senha2',
-        'dispositivos': ['lum1']
+        'dispositivos': ['lum1', 'led2']
     },
     {
         'id': 'usr3',
@@ -46,10 +46,9 @@ users = [
         'dispositivos': ['led1']
     },
     {
-        'id': 'usr4',
-        'username':'usuario4',
-        'password':'senha4',
-        'dispositivos': ['lum1','led2']
+        'id': 'adm1',
+        'username':'admin1',
+        'password':'senha1'
     }
 ]
 
@@ -138,7 +137,31 @@ class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
             if user['username'] == request.username and \
                 user['password'] == request.password:
                 return iot_service_pb2.LoginReply(userId=user['id'])
-        return iot_service_pb2.LoginReply(userId=None)     
+        return iot_service_pb2.LoginReply(userId=None)
+    
+    def GetUserDevices(self, request, context):
+        user = next(usr for usr in users if usr['id'] == request.userId)
+        return iot_service_pb2.GetDeviceReply(deviceId = user['dispositivos'])
+
+    def AddUserDevice(self, request, context):
+        try:
+            user = next(usr for usr in users if usr['id'] == request.userId)
+        except StopIteration:
+            return iot_service_pb2.DeviceReply(confirmation='ERROR')
+        if request.deviceId not in user['dispostivos']:
+            user['dispositivos'].append(request.deviceId)
+        return iot_service_pb2.DeviceReply(confirmation='OK')
+
+    def RemoveUserDevice(self, request, context):
+        try:
+            user = next(usr for usr in users if usr['id'] == request.userId)
+        except StopIteration:
+            return iot_service_pb2.DeviceReply(confirmation='ERROR')
+        try:
+            user['dispositivos'].remove(request.deviceId)
+        except ValueError:
+            return iot_service_pb2.DeviceReply(confirmation='OK')
+        return iot_service_pb2.DeviceReply(confirmation='OK')
         
 
 def serve():
