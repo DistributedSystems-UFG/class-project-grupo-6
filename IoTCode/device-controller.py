@@ -127,7 +127,8 @@ while True:
     # Read and report light lelve to the cloud-based service
     light_level = read_light_sensor(dispositivos[1]['porta_fisica'])
     print('Light level: ', light_level)
-    if (len(dispositivos[1]['estado']) == 0 or light_level != dispositivos[1]['estado'][0]['luminosidade']:
+    if (len(dispositivos[1]['estado']) == 0 or 
+        light_level != dispositivos[1]['estado'][0]['luminosidade']):
         dat = {
             'luminosidade':light_level,
             'data':get_datetime()
