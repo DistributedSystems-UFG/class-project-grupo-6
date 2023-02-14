@@ -19,6 +19,12 @@ service IoTService {
   rpc SayLightLevel (LightLevelRequest) returns (LightLevelReply) {}
 
   rpc Login(LoginRequest) returns (LoginReply) {}
+
+  rpc GetUserDevices(GetDeviceRequest) returns (GetDeviceReply) {}
+
+  rpc AddUserDevice(DeviceRequest) returns (DeviceReply) {}
+
+  rpc RemoveUserDevice(DeviceRequest) returns (DeviceReply) {}
 }
 
 // The request message containing the user's name.
@@ -63,4 +69,21 @@ message LoginRequest {
 
 message LoginReply {
   string userId = 1;
+}
+
+message GetDeviceRequest {
+  string userId = 1;
+}
+
+message GetDeviceReply {
+  repeated string deviceId = 1;
+}
+
+message DeviceRequest {
+  string userId = 1;
+  string deviceId = 2;
+}
+
+message DeviceReply {
+  string confirmation = 1;
 }
