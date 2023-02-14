@@ -58,8 +58,13 @@ message LightLevelRequest {
   string userId = 2;
 }
 
+message LightLevelJSON {
+  float lightlevel = 1;
+  string date = 2;
+}
+
 message LightLevelReply {
-  string lightLevel = 1;
+  repeated LightLevelJSON lightLevelJSON = 1;
 }
 
 message LoginRequest {
