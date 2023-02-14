@@ -87,7 +87,7 @@ def consume_light_level():
             print('Device ' + valor['id'] + ' added')
         else:
             sensor['estado'] = valor['estado']
-            print ('Received Light Level: ', sensor['estado'])
+            print ('Received Light Level: ', sensor['estado'][-1])
 
 def produce_led_command(led):
     producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER+':'+KAFKA_PORT,
