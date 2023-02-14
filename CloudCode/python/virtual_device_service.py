@@ -126,11 +126,18 @@ class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
 
     def SayLightLevel(self, request, context):
         user = next(usr for usr in users if usr['id'] == request.userId)
+        lista = []
         if (request.sensorId in user['dispositivos']):
             sensor = next(disp for disp in dispositivos if disp['id'] == request.sensorId)
-            return iot_service_pb2.LightLevelReply(lightLevel=str(sensor['estado']))
+            for dat in sensor['estado']:
+                item = iot_service_pb2.LightLevelJSON(lightlevel=dat['luminosidade'],
+                    date=dat['data'])
+                lista.append(item)
         else:
-            return iot_service_pb2.LightLevelReply(lightLevel='ACCESS DENIED')
+            item = iot_service_pb2.LightLevelJSON(lightlevel=0,
+                    date='NA')
+            lista.append(item)
+        return iot_service_pb2.LightLevelReply(lightLevel=lista)
 
     def Login(self, request, context):
         for user in users:
