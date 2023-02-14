@@ -19,7 +19,7 @@ dispositivos = [
         'id':'lum1',
         'nome':'sensor_luminosidade',
         'porta_fisica':29,
-        'estado':0
+        'estado':[]
     },
     {
         'id':'led1',
@@ -84,7 +84,14 @@ while True:
     # Read and report light lelve to the cloud-based service
     light_level = read_light_sensor()
     print('Light level: ', light_level)
-    if (light_level != dispositivos[1]['estado']):
-        dispositivos[1]['estado'] = light_level
+    if (len(dispositivos[1]['estado']) == 0 or 
+        light_level != dispositivos[1]['estado'][-1]['luminosidade']):
+        dat = {
+            'luminosidade':light_level,
+            'data':get_datetime()
+        }
+        if len(dispositivos[1]['estado']) == 10:
+            dispositivos[1]['estado'].pop(0)
+        dispositivos[1]['estado'].append(dat)
         producer.send('lightlevel', dispositivos[1])
     time.sleep(1)
