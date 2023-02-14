@@ -59,7 +59,7 @@ message LightLevelRequest {
 }
 
 message LightLevelJSON {
-  float lightlevel = 1;
+  uint32 lightlevel = 1;
   string date = 2;
 }
 
