@@ -137,7 +137,7 @@ class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
             item = iot_service_pb2.LightLevelJSON(lightlevel=0,
                     date='NA')
             lista.append(item)
-        return iot_service_pb2.LightLevelReply(lightLevel=lista)
+        return iot_service_pb2.LightLevelReply(lightLevelJSON=lista)
 
     def Login(self, request, context):
         for user in users:
@@ -155,7 +155,7 @@ class IoTServer(iot_service_pb2_grpc.IoTServiceServicer):
             user = next(usr for usr in users if usr['id'] == request.userId)
         except StopIteration:
             return iot_service_pb2.DeviceReply(confirmation='ERROR')
-        if request.deviceId not in user['dispostivos']:
+        if request.deviceId not in user['dispositivos']:
             user['dispositivos'].append(request.deviceId)
         return iot_service_pb2.DeviceReply(confirmation='OK')
 
