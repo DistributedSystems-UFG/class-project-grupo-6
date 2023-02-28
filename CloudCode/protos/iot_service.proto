@@ -18,77 +18,94 @@ service IoTService {
   // Responds with the current reading of a given light sensor
   rpc SayLightLevel (LightLevelRequest) returns (LightLevelReply) {}
 
+  // Faz o login
   rpc Login(LoginRequest) returns (LoginReply) {}
 
+  // Responde com a lista de dispositivos de um usuario
   rpc GetUserDevices(GetDeviceRequest) returns (GetDeviceReply) {}
 
+  // Adiciona um dispositivo na lista de um usuario
   rpc AddUserDevice(DeviceRequest) returns (DeviceReply) {}
 
+  // Remove um dispositivo na lista de um usuario
   rpc RemoveUserDevice(DeviceRequest) returns (DeviceReply) {}
 }
 
-// The request message containing the user's name.
+// Mensagem de requisicao contendo o id do sensor e o id do usuario
 message TemperatureRequest {
   string sensorId = 1;
   string userId = 2;
 }
 
+// Mensagem para definir um tipo de dado, com temperature e date
 message TemperatureJSON {
   float temperature = 1;
   string date = 2;
 }
 
-// The response message containing the greetings
+// Mensagem de resposta contendo uma lista de TemperatureJSON
 message TemperatureReply {
   repeated TemperatureJSON temperatureJSON = 1;
 }
 
+// Mensagem de requisicao contendo o estado do led, o id do led
+// e o id do usuario
 message LedRequest {
   uint32 state = 1;
   string ledId = 2;
   string userId = 3;
 }
 
+// Mensagem de resposta contendo o estado do led
 message LedReply {
   uint32 ledstate = 1;
 }
 
+// Mensagem de requisicao contendo o id do sensor e o id do usuario
 message LightLevelRequest {
   string sensorId = 1;
   string userId = 2;
 }
 
+// Mensagem para definir um tipo de dado, com lightlevel e date
 message LightLevelJSON {
   uint32 lightlevel = 1;
   string date = 2;
 }
 
+// Mensagem de resposta contendo uma lista de LightLevelJSON
 message LightLevelReply {
   repeated LightLevelJSON lightLevelJSON = 1;
 }
 
+// Mensagem de requisicao contendo o username e o password
 message LoginRequest {
   string username = 1;
   string password = 2;
 }
 
+// Mensagem de resposta contendo o id do usuario
 message LoginReply {
   string userId = 1;
 }
 
+// Mensagem de requisicao contendo o id do usuario
 message GetDeviceRequest {
   string userId = 1;
 }
 
+// Mensagem de resposta contendo uma lista de id de dispositivos
 message GetDeviceReply {
   repeated string deviceId = 1;
 }
 
+// Mensagem de requisicao contendo o id do usuario e o id do dispositivo
 message DeviceRequest {
   string userId = 1;
   string deviceId = 2;
 }
 
+// Mensagem de resposta contendo uma string de confirmacao
 message DeviceReply {
   string confirmation = 1;
 }
